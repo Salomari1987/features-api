@@ -19,5 +19,5 @@ class Feature(models.Model):
         max_length=2,
         choices=PRODUCT_AREA_CHOICES,
     )
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    modified_at = models.DateTimeField(auto_now=True, editable=False)
