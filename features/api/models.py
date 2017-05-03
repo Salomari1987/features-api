@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.db.models import F
 
 class Feature(models.Model):
     PRODUCT_AREA_CHOICES = (
@@ -19,5 +20,16 @@ class Feature(models.Model):
         max_length=2,
         choices=PRODUCT_AREA_CHOICES,
     )
+    priority = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     modified_at = models.DateTimeField(auto_now=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        try:
+            feature = Feature.objects.get(priority=self.priority)
+            feature.priority = feature.priority + 1
+            feature.save()
+        except Feature.DoesNotExist:
+            pass
+
+        super(Feature, self).save(*args, **kwargs)
