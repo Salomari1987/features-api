@@ -8,6 +8,7 @@ from datetime import datetime
 from rest_framework import status
 from django.core.urlresolvers import reverse
 
+
 class FeatureModelTestCase(TestCase):
     """
     This class defines test cases for the Feature model
@@ -68,6 +69,7 @@ class FeatureModelTestCase(TestCase):
         )
         feature3.save()
         self.assertEqual(Feature.objects.get(pk=self.feature.pk).priority, 3)
+
 
 class FeatureViewTest(TestCase):
 

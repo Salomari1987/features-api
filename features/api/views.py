@@ -6,8 +6,12 @@ from api.models import Feature
 
 from django.shortcuts import render
 
-class FeatureView(generics.ListCreateAPIView):
 
+class FeatureView(generics.ListCreateAPIView):
+    """
+    View to create and list features
+    Accepts GET and POST requests
+    """
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
 
