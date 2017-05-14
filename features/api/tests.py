@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 from django.test import TestCase
 from rest_framework.test import APIClient
 from api.models import Feature
-from datetime import datetime
 from rest_framework import status
 from django.core.urlresolvers import reverse
-import json
+
+from django.contrib.auth.models import User
+
 
 class FeatureModelTestCase(TestCase):
     """
@@ -20,13 +21,16 @@ class FeatureModelTestCase(TestCase):
         self.feature_target_date = '2018-08-12'
         self.feature_ticket_url = 'http://www.example.com'
         self.feature_product_area = 'P'
+        user = User.objects.create(username="TheBestGeekInTheWorld")
+
         self.feature = Feature(
             title=self.feature_title,
             description=self.feature_description,
             target_date=self.feature_target_date,
             ticket_url=self.feature_ticket_url,
             product_area=self.feature_product_area,
-            priority=1
+            priority=1,
+            owner=user
         )
 
     def test_model_creates_a_feature(self):
@@ -35,7 +39,7 @@ class FeatureModelTestCase(TestCase):
         after_count = Feature.objects.count()
         self.assertNotEqual(before_count, after_count)
 
-    def test_model_increments_priorities(self):
+    def test_model_increments_priorities_two(self):
         self.feature.save()
         feature2 = Feature(
             title=self.feature_title,
@@ -48,7 +52,7 @@ class FeatureModelTestCase(TestCase):
         feature2.save()
         self.assertEqual(Feature.objects.get(pk=self.feature.pk).priority, 2)
 
-    def test_model_increments_priorities_2(self):
+    def test_model_increments_priorities_for_group(self):
         self.feature.save()
         feature2 = Feature(
             title=self.feature_title,
@@ -71,17 +75,22 @@ class FeatureModelTestCase(TestCase):
         self.assertEqual(Feature.objects.get(pk=self.feature.pk).priority, 3)
 
 
+
 class FeatureViewTest(TestCase):
 
     def setUp(self):
+        user = User.objects.create(username="TheBestGeekInTheWorld")
         self.client = APIClient()
+        self.client.force_authenticate(user=user)
+
         self.feature_data = {
             'title': 'Feature view title test',
             'description': 'Description of the Feature request',
             'target_date': "2018-08-21",
             'ticket_url': 'http://www.example.com',
             'product_area': 'P',
-            'priority': 1
+            'priority': 1,
+            'owner': user.id
         }
         self.response_post = self.client.post(
             reverse('features:list_create'),
@@ -92,6 +101,18 @@ class FeatureViewTest(TestCase):
             reverse('features:list_create'),
             format='json'
         )
+
+    def test_authentication_is_enforced(self):
+        """Test that the api has user authorization."""
+        new_client = APIClient()
+
+        # Unauthenticated user can do GET
+        res_get = new_client.get(reverse('features:list_create'), format="json")
+        self.assertEqual(res_get.status_code, status.HTTP_200_OK)
+
+        # Unauthenticated user cannot post
+        res_post = new_client.post(reverse('features:list_create'), format="json")
+        self.assertEqual(res_post.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_api_create_feature(self):
         self.assertEqual(self.response_post.status_code, status.HTTP_201_CREATED)
