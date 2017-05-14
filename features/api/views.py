@@ -18,3 +18,13 @@ class FeatureView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         """Save the post data when creating a new feature."""
         serializer.save()
+
+
+class FeatureDetailsView(generics.RetrieveUpdateDestroyAPIView):
+    """This class handles the http GET, PUT and DELETE requests."""
+
+    serializer_class = FeatureSerializer
+    queryset = Feature.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
