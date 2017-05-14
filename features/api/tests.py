@@ -7,7 +7,7 @@ from api.models import Feature
 from datetime import datetime
 from rest_framework import status
 from django.core.urlresolvers import reverse
-
+import json
 
 class FeatureModelTestCase(TestCase):
     """
@@ -84,12 +84,12 @@ class FeatureViewTest(TestCase):
             'priority': 1
         }
         self.response_post = self.client.post(
-            reverse('features'),
+            reverse('features:list_create'),
             self.feature_data,
             format='json'
         )
         self.response_get = self.client.get(
-            reverse('features'),
+            reverse('features:list_create'),
             format='json'
         )
 
@@ -105,13 +105,44 @@ class FeatureViewTest(TestCase):
 
     def test_api_get_features_body(self):
         self.client.post(
-            reverse('features'),
+            reverse('features:list_create'),
             self.feature_data,
             format='json'
         )
         response_get_all = self.client.get(
-            reverse('features'),
+            reverse('features:list_create'),
             format='json'
         )
         self.assertEqual(len(response_get_all.data), 2)
         self.assertEqual(response_get_all.data[1]['id'], 2)
+
+    def test_api_can_get_a_feature(self):
+        """Test the api can get a given feature."""
+        feature = Feature.objects.get()
+        response = self.client.get(
+            reverse('features:details', kwargs={'pk': feature.id}),
+            format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, feature.title)
+
+    def test_api_can_update_feature(self):
+        """Test the api can update a given feature."""
+        feature = Feature.objects.get()
+        change_feature = {'title': 'something new'}
+        res = self.client.put(
+            reverse('features:details', kwargs={'pk': feature.pk}),
+            change_feature, format='json'
+        )
+        self.assertEqual(res.json()['title'], change_feature['title'])
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_api_can_delete_feature(self):
+        """Test the api can delete a feature."""
+        feature = Feature.objects.get()
+        response = self.client.delete(
+            reverse('features:details', kwargs={'pk': feature.id}),
+            format='json',
+            follow=True)
+
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)

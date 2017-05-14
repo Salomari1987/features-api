@@ -46,8 +46,9 @@ class Feature(models.Model):
         """
         try:
             feature = Feature.objects.get(priority=self.priority)
-            feature.priority = feature.priority + 1
-            feature.save()
+            if feature.id != self.id:
+                feature.priority = feature.priority + 1
+                feature.save()
         except Feature.DoesNotExist:
             pass
 
