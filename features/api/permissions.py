@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 from .models import Feature
 
+
 class IsOwnerOrStaff(BasePermission):
     """Custom permission class to allow only features owners or admins to edit them."""
 

@@ -114,6 +114,12 @@ class FeatureViewTest(TestCase):
         res_post = new_client.post(reverse('features:list_create'), format="json")
         self.assertEqual(res_post.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_authorization_is_enforced(self):
+        """Test that the api has user authorization."""
+        new_client = APIClient()
+        res = new_client.get(reverse('features:details', kwargs={'pk': 1}), format="json")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_api_create_feature(self):
         self.assertEqual(self.response_post.status_code, status.HTTP_201_CREATED)
 

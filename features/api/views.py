@@ -30,6 +30,7 @@ class FeatureDetailsView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = FeatureSerializer
     queryset = Feature.objects.all()
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrStaff)
 
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
