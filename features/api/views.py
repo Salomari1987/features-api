@@ -22,7 +22,7 @@ class FeatureView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         """Save the post data when creating a new feature."""
-        serializer.save()
+        serializer.save(owner=self.request.user)
 
 
 class FeatureDetailsView(generics.RetrieveUpdateDestroyAPIView):

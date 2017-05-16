@@ -48,9 +48,9 @@ class Feature(models.Model):
          i.e. the process is recursive
         """
         try:
-            feature = Feature.objects.get(priority=self.priority)
+            feature = Feature.objects.get(priority=self.priority, owner=self.owner)
             if feature.id != self.id:
-                feature.priority = feature.priority + 1
+                feature.priority += 1
                 feature.save()
         except Feature.DoesNotExist:
             pass
