@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from users.serializers import UserRegistrationSerializer, UserLoginSerializer, TokenSerializer
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 
 
 class UserRegistrationAPIView(CreateAPIView):
@@ -49,3 +50,11 @@ class UserLoginAPIView(GenericAPIView):
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class UserLogoutAPIView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        Token.objects.filter(user=request.user).delete()
+
+        return Response(status=status.HTTP_200_OK)

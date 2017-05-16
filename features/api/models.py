@@ -40,7 +40,6 @@ class Feature(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     modified_at = models.DateTimeField(auto_now=True, editable=False)
 
-
     def save(self, *args, **kwargs):
         """
         Method overrides model save method to increment priority of an object that equals object to be saved.

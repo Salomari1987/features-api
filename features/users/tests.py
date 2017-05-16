@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APITestCase, APIClient
 
 
 class UserRegistrationAPIViewTestCase(APITestCase):
@@ -77,3 +78,23 @@ class UserLoginAPIViewTestCase(APITestCase):
         response = self.client.post(self.url, {"username": self.username, "password": self.password})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("token" in json.loads(response.content))
+
+
+class UserLogoutAPIViewTestCase(APITestCase):
+
+    def setUp(self):
+        self.url = reverse("users:logout")
+        self.username = "nemo"
+        self.email = "nemo@nobody.com"
+        self.password = "123123"
+        self.user = User.objects.create_user(self.username, self.email, self.password)
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_logout(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Token.objects.filter(key=self.token).exists())
