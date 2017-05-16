@@ -9,6 +9,8 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.auth.models import User
 
+import json
+
 
 class FeatureModelTestCase(TestCase):
     """
@@ -75,11 +77,11 @@ class FeatureModelTestCase(TestCase):
         self.assertEqual(Feature.objects.get(pk=self.feature.pk).priority, 3)
 
 
-
 class FeatureViewTest(TestCase):
 
     def setUp(self):
-        user = User.objects.create(username="TheBestGeekInTheWorld")
+        user = User.objects.create(username="TheBestGeekInTheWorld", password="123123")
+        user.save()
         self.client = APIClient()
         self.client.force_authenticate(user=user)
 
@@ -172,4 +174,62 @@ class FeatureViewTest(TestCase):
             format='json',
             follow=True)
 
-        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
+    def test_staff_can_edit_feature(self):
+        feature = Feature.objects.get()
+        superuser = User.objects.create_superuser('admin', 'admin@email.com', '123123')
+        change_feature = {'title': 'something new'}
+        new_client = APIClient()
+        new_client.force_authenticate(user=superuser)
+        response = new_client.put(
+            reverse('features:details', kwargs={'pk': feature.pk}),
+            change_feature, format='json'
+        )
+        self.assertEquals(response.json()['title'], change_feature['title'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_non_owner_cannot_edit_or_delete_or_get_feature(self):
+        feature = Feature.objects.get()
+        superuser = User.objects.create_user('differentUser', 'different@user.com', '123123')
+        change_feature = {'title': 'something new'}
+        new_client = APIClient()
+        new_client.force_authenticate(user=superuser)
+        response = new_client.put(
+            reverse('features:details', kwargs={'pk': feature.pk}),
+            change_feature, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_priority_update_is_recursive(self):
+        res = self.client.post(
+            reverse('features:list_create'),
+            self.feature_data,
+            format='json'
+        )
+        feature_1 = Feature.objects.get(pk=int(json.loads(self.response_post.content)["id"]))
+        feature_2 = Feature.objects.get(pk=int(json.loads(res.content)["id"]))
+
+        self.assertTrue(feature_1.priority > feature_2.priority)
+
+    def test_different_users_same_priority(self):
+        user = User.objects.create_user(username="Salah", password="123123")
+        user.save()
+
+        new_client = APIClient()
+        new_client.force_authenticate(user=user)
+        feature_data_2 = {
+            'title': 'Feature 2',
+            'description': 'Description of the Feature request',
+            'target_date': "2018-08-21",
+            'ticket_url': 'http://www.example.com',
+            'product_area': 'P',
+            'priority': 1,
+            'owner': user.id
+        }
+        res = new_client.post(
+            reverse('features:list_create'),
+            feature_data_2,
+            format='json'
+        )
+        feature_1 = Feature.objects.get(pk=json.loads(self.response_post.content)["id"])
+        feature_2 = Feature.objects.get(pk=json.loads(res.content)["id"])
+        self.assertEqual(feature_1.priority, feature_2.priority)
