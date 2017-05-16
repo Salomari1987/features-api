@@ -16,7 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.conf.urls import url, include
 
+api_urls = [
+    url(r'^features/', include('api.urls', namespace='features')),
+    url(r'^users/', include('users.urls', namespace='users')),
+]
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/', include('api.urls', namespace='features'))
+    url(r'^api/', include(api_urls)),
 ]

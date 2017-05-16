@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.db.models import F
 
 
 class Feature(models.Model):
@@ -25,6 +24,10 @@ class Feature(models.Model):
         ('R', 'Reports'),
     )
 
+    owner = models.ForeignKey('auth.User',
+                              related_name='features',
+                              on_delete=models.CASCADE,
+                              default=1)
     title = models.CharField(max_length=255, blank=False)
     description = models.TextField()
     target_date = models.DateField(blank=True)
