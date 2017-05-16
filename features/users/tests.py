@@ -13,7 +13,7 @@ from rest_framework.test import APITestCase
 class UserRegistrationAPIViewTestCase(APITestCase):
 
     def setUp(self):
-        self.url = reverse("users:list_create")
+        self.url = reverse("users:create")
 
     def test_user_registration(self):
         user_data = {
@@ -53,3 +53,25 @@ class UserRegistrationAPIViewTestCase(APITestCase):
         }
         response = self.client.post(self.url, user_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class UserLoginAPIViewTestCase(APITestCase):
+
+    def setUp(self):
+        self.url = reverse("users:login")
+        self.username = "nemo"
+        self.email = "nemo@nobody.com"
+        self.password = "123123"
+        self.user = User.objects.create_user(self.username, self.email, self.password)
+
+    def test_authentication_without_password(self):
+        response = self.client.post(self.url, {"username": self.username})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_authentication_with_wrong_password(self):
+        response = self.client.post(self.url, {"username": self.username, "password": "I_know"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_authentication_with_valid_data(self):
+        response = self.client.post(self.url, {"username": self.username, "password": self.password})
+        self.assertEqual(200, response.status_code)
