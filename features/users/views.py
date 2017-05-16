@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.response import Response
-from users.serializers import UserRegistrationSerializer, UserLoginSerializer
+from users.serializers import UserRegistrationSerializer, UserLoginSerializer, TokenSerializer
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 
 class UserRegistrationAPIView(CreateAPIView):
@@ -16,7 +17,12 @@ class UserRegistrationAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        data = serializer.data
+        user = serializer.instance
+        token, created = Token.objects.get_or_create(user=user)
+        data = {
+            "username": serializer.data["username"],
+            "token": token.key
+        }
 
         headers = self.get_success_headers(serializer.data)
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
@@ -30,8 +36,12 @@ class UserLoginAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.user
+            token, _ = Token.objects.get_or_create(user=user)
             return Response(
-                data=user.username,
+                data={
+                    "username": user.username,
+                    "token": TokenSerializer(token).data["auth_token"]
+                },
                 status=status.HTTP_200_OK,
             )
         else:

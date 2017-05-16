@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -9,7 +10,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "password", "confirm_password", "date_joined")
+        fields = ("id", "username", "email", "password", "confirm_password")
 
     def create(self, validated_data):
         del validated_data["confirm_password"]
@@ -39,3 +40,11 @@ class UserLoginSerializer(serializers.Serializer):
             return attrs
         else:
             raise serializers.ValidationError(self.error_messages['invalid_credentials'])
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    auth_token = serializers.CharField(source='key')
+
+    class Meta:
+        model = Token
+        fields = ("auth_token",)
