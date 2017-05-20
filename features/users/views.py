@@ -34,6 +34,7 @@ class UserLoginAPIView(GenericAPIView):
     permission_classes = ()
 
     def post(self, request, *args, **kwargs):
+        print request.data
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.user
@@ -53,8 +54,10 @@ class UserLoginAPIView(GenericAPIView):
 
 
 class UserLogoutAPIView(APIView):
+    permission_classes = ()
 
     def post(self, request, *args, **kwargs):
+        print request
         Token.objects.filter(user=request.user).delete()
 
         return Response(status=status.HTTP_200_OK)
